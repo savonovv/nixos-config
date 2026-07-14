@@ -1,8 +1,21 @@
 # NixOS Configuration
 
-My flake-based NixOS and Home Manager configuration for a keyboard-driven
-Hyprland laptop. The desktop uses the Kanagawa Wave palette across SDDM,
-Hyprland, Ghostty, tmux, Vicinae, Firefox, and Neovim.
+![Wallpaper](assets/wallpaper.png)
+
+Terminal-centered, minimal NixOS and Home Manager configuration for a
+keyboard-driven Hyprland laptop. The desktop uses the Kanagawa Wave palette
+across SDDM, Hyprland, Ghostty, tmux, Vicinae, Firefox, and Neovim, with most
+daily workflows staying inside a terminal-first setup.
+
+This is a living personal system. The published configuration is usable and
+documented, but the full desktop is still in progress and will keep changing as
+the workflow settles.
+
+## Screenshots
+
+![Main desktop](assets/screenshots/mainscreen.png)
+
+![Neovim setup](assets/screenshots/nvim.png)
 
 ## Highlights
 
