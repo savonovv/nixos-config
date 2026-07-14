@@ -1,0 +1,28 @@
+# Machine-generated hardware identifiers
+/hosts/*/hardware-configuration.nix
+
+# Local-only post drafts
+/REDDIT.md
+
+# Nix and Home Manager output
+/result
+/result-*
+*.hm-backup
+
+# Local development state
+/.direnv/
+/.env
+/.env.*
+!/.env.example
+
+# Plaintext secrets and private keys
+/secrets/
+*.key
+*.pem
+*.secret
+
+# Editor and OS files
+*.swp
+*.swo
+*~
+.DS_Store
