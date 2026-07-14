@@ -3,6 +3,7 @@
 {
   home.packages = with pkgs; [
     bat
+    claude-code
     chromium
     eza
     gh

@@ -87,6 +87,11 @@
     auto-optimise-store = true;
   };
 
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [
+      "claude-code"
+    ];
+
   nix.gc = {
     automatic = true;
     dates = "weekly";
