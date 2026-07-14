@@ -69,6 +69,8 @@
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
     git
+    nftables
+    zapret2
     # wget
     # ghostty
     # opencode
