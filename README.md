@@ -137,10 +137,6 @@ names. Battery notifications and the tmux status line expect `BAT0`, brightness
 controls expect `intel_backlight`, and fingerprint authentication is enabled for
 Hyprlock. Adjust or remove those settings on different hardware.
 
-The EPOMAKER VIA/WebHID permission used during initial keyboard setup is not
-kept declaratively. VIA writes mappings to keyboard firmware; normal keyboard
-operation and keyd do not require ongoing hidraw access.
-
 ## Privacy And Secrets
 
 No credentials, browser data, Wi-Fi profiles, or private keys belong in this
