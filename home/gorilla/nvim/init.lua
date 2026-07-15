@@ -1,24 +1,46 @@
 -- A small, single-file Neovim 0.12 configuration.
-
-vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+vim.g.mapleader = " "
 
 -- Packages -------------------------------------------------------------------
 
 vim.pack.add({
     "https://github.com/rebelot/kanagawa.nvim",
-    "https://github.com/nvim-mini/mini.pick",
-    "https://github.com/nvim-mini/mini.surround",
+    "https://github.com/nvim-mini/mini.nvim",
     "https://github.com/nvim-treesitter/nvim-treesitter",
-    "https://github.com/nvim-tree/nvim-tree.lua",
-    "https://github.com/nvim-tree/nvim-web-devicons",
     "https://github.com/folke/which-key.nvim",
     "https://github.com/mfussenegger/nvim-dap",
-    "https://github.com/tpope/vim-fugitive",
 })
 
+local mini_icons = require("mini.icons")
+mini_icons.setup({})
+mini_icons.tweak_lsp_kind()
+
+require("mini.notify").setup({
+    lsp_progress = { enable = false },
+})
+require("mini.cmdline").setup({ autocomplete = { delay = 100 } })
+local mini_completion = require("mini.completion")
+mini_completion.setup({
+    lsp_completion = { source_func = "omnifunc", auto_setup = false },
+})
 require("mini.surround").setup({})
 require("mini.pick").setup({})
+vim.ui.select = MiniPick.ui_select
+require("mini.files").setup({})
+require("mini.tabline").setup({ show_icons = true })
+require("mini.bufremove").setup({})
+require("mini.diff").setup({
+    view = {
+        style = "sign",
+        signs = { add = "▎", change = "▎", delete = "" },
+    },
+})
+require("mini.git").setup({})
+require("mini.indentscope").setup({
+    draw = { animation = require("mini.indentscope").gen_animation.none() },
+})
+require("mini.sessions").setup({})
 
 local which_key = require("which-key")
 which_key.setup({
@@ -33,16 +55,26 @@ which_key.setup({
         scroll_up = "<C-u>",
     },
     preset = "helix",
+    -- "<auto>" keeps the default detection; "s" must be explicit because
+    -- which-key does not auto-trigger on keys that shadow built-ins.
+    triggers = {
+        { "<auto>", mode = "nixsotc" },
+        { "s", mode = { "n", "x" } },
+    },
     win = { border = "single" },
 })
 
 which_key.add({
     { "s", group = "Surround", mode = { "n", "x" } },
     { "<leader>?", desc = "Buffer keymaps" },
+    { "<leader>b", group = "Buffers" },
     { "<leader>c", group = "Code" },
     { "<leader>d", group = "Debug" },
     { "<leader>f", group = "Find" },
     { "<leader>g", group = "Git" },
+    { "<leader>n", group = "Notifications" },
+    { "<leader>s", group = "Sessions" },
+    { "<leader>w", group = "Windows" },
 })
 
 vim.keymap.set("n", "<leader>?", function()
@@ -72,15 +104,6 @@ vim.api.nvim_create_autocmd("FileType", {
     callback = function()
         pcall(vim.treesitter.start)
     end,
-})
-
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
-require("nvim-tree").setup({
-    actions = { open_file = { quit_on_open = false } },
-    filters = { git_ignored = false },
-    renderer = { group_empty = true },
-    view = { width = 30 },
 })
 
 -- Appearance -----------------------------------------------------------------
@@ -121,15 +144,17 @@ vim.api.nvim_set_hl(0, "StatuslineError", { bg = "#1f1f28", fg = "#e82424", bold
 vim.api.nvim_set_hl(0, "StatuslineWarn", { bg = "#1f1f28", fg = "#e6c384", bold = true })
 vim.api.nvim_set_hl(0, "StatuslineLsp", { bg = "#1f1f28", fg = "#7aa89f" })
 vim.api.nvim_set_hl(0, "StatuslineMeta", { bg = "#16161d", fg = "#727169" })
+vim.api.nvim_set_hl(0, "StatuslineDiff", { bg = "#1f1f28", fg = "#7aa89f" })
 
 function _G.statusline()
     local mode = mode_names[vim.fn.mode(1)] or vim.fn.mode(1):upper()
-    local branch = ""
-    if vim.fn.exists("*FugitiveHead") == 1 then
-        local ok, head = pcall(vim.fn.FugitiveHead)
-        if ok and head ~= "" then
-            branch = "%#StatuslineGit#  " .. head .. " "
-        end
+    local git_summary = vim.b.minigit_summary_string
+    local branch = git_summary and git_summary ~= "" and ("%#StatuslineGit#  " .. git_summary .. " ") or ""
+
+    local diff = ""
+    local diff_summary = vim.b.minidiff_summary_string
+    if diff_summary and diff_summary ~= "" then
+        diff = "%#StatuslineDiff# " .. diff_summary .. " "
     end
 
     local errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
@@ -150,6 +175,7 @@ function _G.statusline()
         mode,
         " ",
         branch,
+        diff,
         "%#StatuslineFile#  %f %m%r",
         "%=",
         diagnostics,
@@ -185,7 +211,7 @@ vim.opt.isfname:append("@-@")
 
 -- Native completion shows LSP details in a documentation popup. Command-line
 -- completion uses the same popup-menu style and fuzzy matching.
-vim.opt.autocomplete = true
+vim.opt.autocomplete = false
 vim.opt.completeopt = { "menu", "menuone", "noselect", "popup" }
 vim.opt.wildmode = { "noselect:lastused", "full" }
 vim.opt.wildoptions = { "pum", "fuzzy" }
@@ -206,6 +232,14 @@ vim.api.nvim_create_autocmd("FileType", {
     group = general_group,
     callback = function()
         vim.opt_local.formatoptions:remove({ "c", "r", "o" })
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = general_group,
+    pattern = { "help", "minifiles", "minipick", "notify" },
+    callback = function()
+        vim.b.miniindentscope_disable = true
     end,
 })
 
@@ -253,6 +287,11 @@ local servers = {
 
 for name, config in pairs(servers) do
     if vim.fn.executable(config.cmd[1]) == 1 then
+        config.capabilities = vim.tbl_deep_extend(
+            "force",
+            config.capabilities or {},
+            mini_completion.get_lsp_capabilities()
+        )
         vim.lsp.config(name, config)
         vim.lsp.enable(name)
     end
@@ -268,7 +307,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("lsp_attach", { clear = true }),
     callback = function(args)
         local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
-        vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+        vim.bo[args.buf].omnifunc = "v:lua.MiniCompletion.completefunc_lsp"
 
         local function lsp_map(lhs, rhs, description)
             vim.keymap.set("n", lhs, rhs, { buffer = args.buf, desc = "LSP: " .. description })
@@ -277,13 +316,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
         lsp_map("gd", vim.lsp.buf.definition, "Go to definition")
         lsp_map("gD", vim.lsp.buf.declaration, "Go to declaration")
         lsp_map("gr", vim.lsp.buf.references, "References")
-        lsp_map("K", vim.lsp.buf.hover, "Documentation")
+        lsp_map("<leader>k", vim.lsp.buf.hover, "Documentation")
         lsp_map("<leader>ca", vim.lsp.buf.code_action, "Code action")
         lsp_map("<leader>rn", vim.lsp.buf.rename, "Rename")
     end,
 })
 
-vim.keymap.set("i", "<C-Space>", vim.lsp.completion.get, { desc = "Open completion" })
 vim.keymap.set("i", "<Tab>", function()
     return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
 end, { expr = true, desc = "Next completion" })
@@ -300,8 +338,68 @@ vim.keymap.set("n", "<leader>fg", pick.builtin.grep_live, { desc = "Find text" }
 vim.keymap.set("n", "<leader>fb", pick.builtin.buffers, { desc = "Find buffers" })
 vim.keymap.set("n", "<leader>fh", pick.builtin.help, { desc = "Find help" })
 vim.keymap.set("n", "<leader>fr", pick.builtin.resume, { desc = "Resume picker" })
-vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file tree" })
-vim.keymap.set("n", "<leader>E", "<cmd>NvimTreeFindFile<CR>", { desc = "Reveal file in tree" })
+vim.keymap.set("n", "<leader>e", function()
+    if not MiniFiles.close() then
+        MiniFiles.open(vim.uv.cwd(), true)
+    end
+end, { desc = "Toggle file explorer" })
+vim.keymap.set("n", "<leader>E", function()
+    MiniFiles.open(vim.api.nvim_buf_get_name(0), false)
+end, { desc = "Reveal file in explorer" })
+
+vim.keymap.set("n", "<leader>nh", MiniNotify.show_history, { desc = "Notification history" })
+vim.keymap.set("n", "<leader>nc", MiniNotify.clear, { desc = "Clear notifications" })
+
+vim.keymap.set("n", "<leader>ss", function()
+    MiniSessions.select("read")
+end, { desc = "Select session" })
+vim.keymap.set("n", "<leader>sc", function()
+    vim.ui.input({ prompt = "Session name: " }, function(name)
+        if name and name ~= "" then
+            MiniSessions.write(name)
+        end
+    end)
+end, { desc = "Create named session" })
+vim.keymap.set("n", "<leader>sw", function()
+    MiniSessions.write()
+end, { desc = "Write active session" })
+vim.keymap.set("n", "<leader>sl", function()
+    MiniSessions.write("Session.vim")
+end, { desc = "Create local session" })
+vim.keymap.set("n", "<leader>sd", function()
+    MiniSessions.select("delete")
+end, { desc = "Delete session" })
+
+-- Windows --------------------------------------------------------------------
+
+vim.keymap.set("n", "<leader>wh", "<C-w>h", { desc = "Go to left window" })
+vim.keymap.set("n", "<leader>wj", "<C-w>j", { desc = "Go to lower window" })
+vim.keymap.set("n", "<leader>wk", "<C-w>k", { desc = "Go to upper window" })
+vim.keymap.set("n", "<leader>wl", "<C-w>l", { desc = "Go to right window" })
+vim.keymap.set("n", "<leader>ww", "<C-w>w", { desc = "Go to next window" })
+vim.keymap.set("n", "<leader>ws", "<cmd>split<CR>", { desc = "Split horizontally" })
+vim.keymap.set("n", "<leader>wv", "<cmd>vsplit<CR>", { desc = "Split vertically" })
+vim.keymap.set("n", "<leader>wc", "<cmd>close<CR>", { desc = "Close window" })
+vim.keymap.set("n", "<leader>wo", "<cmd>only<CR>", { desc = "Close other windows" })
+vim.keymap.set("n", "<leader>w=", "<C-w>=", { desc = "Equalize windows" })
+
+-- Buffers ----------------------------------------------------------------------
+
+vim.keymap.set("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
+vim.keymap.set("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
+
+vim.keymap.set("n", "<leader>bd", function()
+    require("mini.bufremove").delete(0, false)
+end, { desc = "Delete buffer" })
+
+vim.keymap.set("n", "<leader>bo", function()
+    local current = vim.api.nvim_get_current_buf()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if buf ~= current and vim.bo[buf].buflisted then
+            require("mini.bufremove").delete(buf, false)
+        end
+    end
+end, { desc = "Delete other buffers" })
 
 -- Debugger -------------------------------------------------------------------
 
@@ -337,51 +435,57 @@ vim.keymap.set("n", "<leader>dx", dap.terminate, { desc = "Debug: Stop" })
 
 -- Git ------------------------------------------------------------------------
 
-vim.keymap.set("n", "<leader>gs", "<cmd>Git<CR>", { desc = "Git status" })
-vim.keymap.set("n", "<leader>gb", "<cmd>Git blame<CR>", { desc = "Git blame" })
-vim.keymap.set("n", "<leader>gd", "<cmd>Gdiffsplit<CR>", { desc = "Git diff" })
+vim.keymap.set("n", "<leader>gs", "<cmd>Git status<CR>", { desc = "Git status" })
+vim.keymap.set("n", "<leader>gb", "<cmd>vertical Git blame -- %<CR>", { desc = "Git blame" })
+vim.keymap.set("n", "<leader>gd", "<cmd>Git diff<CR>", { desc = "Git diff" })
 vim.keymap.set("n", "<leader>gl", "<cmd>Git log --oneline<CR>", { desc = "Git log" })
+vim.keymap.set({ "n", "x" }, "<leader>gh", MiniGit.show_at_cursor, { desc = "Git history at cursor" })
+vim.keymap.set("n", "<leader>go", function()
+    require("mini.diff").toggle_overlay(0)
+end, { desc = "Toggle git diff overlay" })
 
 -- General keymaps ------------------------------------------------------------
 
 vim.keymap.set("x", "p", [['_dP]], { desc = "Paste without replacing the register" })
-vim.keymap.set({ "n", "x" }, "<leader>D", [['_d]], { desc = "Delete without yanking" })
+vim.keymap.set({ "n", "x" }, "<leader>d", "d", { desc = "Delete without yanking" })
 vim.keymap.set({ "n", "x" }, "c", '"_c', { desc = "Change without yanking" })
 vim.keymap.set({ "n", "x" }, "C", '"_C', { desc = "Change line without yanking" })
 
 vim.keymap.set({ "n", "x" }, "G", "G$zz")
 vim.keymap.set({ "n", "x" }, "gg", "gg^zz")
 vim.keymap.set("i", "jk", "<Esc>")
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR><Esc>", { desc = "Clear search highlight" })
-
-vim.keymap.set({ "n", "x" }, "<leader>q", "<cmd>q<CR>", { desc = "Quit" })
-vim.keymap.set({ "n", "x" }, "<leader>QQ", "<cmd>q!<CR>", { desc = "Force quit" })
-
-vim.keymap.set("x", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
-vim.keymap.set("x", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
+vim.keymap.set("i", "kj", "<Esc>")
 vim.keymap.set("x", "<", "<gv", { desc = "Unindent selection" })
 vim.keymap.set("x", ">", ">gv", { desc = "Indent selection" })
 
+local function move_selection(offset)
+    local first = math.min(vim.fn.line("v"), vim.fn.line("."))
+    local last = math.max(vim.fn.line("v"), vim.fn.line("."))
+
+    if (offset < 0 and first == 1) or (offset > 0 and last == vim.fn.line("$")) then
+        return
+    end
+
+    local destination = offset < 0 and first - 2 or last + 1
+    vim.cmd(("%d,%dmove %d"):format(first, last, destination))
+
+    vim.cmd.normal({ vim.keycode("<Esc>"), bang = true })
+    vim.api.nvim_win_set_cursor(0, { first + offset, 0 })
+    vim.cmd("normal! V")
+    vim.api.nvim_win_set_cursor(0, { last + offset, 0 })
+end
+
+vim.keymap.set("x", "J", function()
+    move_selection(1)
+end, { desc = "Move selection down" })
+vim.keymap.set("x", "K", function()
+    move_selection(-1)
+end, { desc = "Move selection up" })
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down centered" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up centered" })
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result centered" })
 vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result centered" })
 
-vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], {
-    desc = "Replace word in buffer",
+vim.keymap.set("x", "<leader>r", "\"hy:%s/<C-r>h//g<left><left>", {
+    desc = "Replace word under selection",
 })
-
-vim.keymap.set("n", "<leader>u", function()
-    vim.cmd.packadd("nvim.undotree")
-    require("undotree").open()
-end, { desc = "Toggle undo tree" })
-
-local function save_and_format()
-    local clients = vim.lsp.get_clients({ bufnr = 0, method = "textDocument/formatting" })
-    if #clients > 0 then
-        vim.lsp.buf.format({ async = false })
-    end
-    vim.cmd.update()
-end
-
-vim.keymap.set({ "i", "n", "x" }, "<C-s>", save_and_format, { desc = "Format and save" })

@@ -31,5 +31,4 @@
     initLua = builtins.readFile ./init.lua;
     };
 
-  xdg.configFile."nvim/nvim-pack-lock.json".source = ./nvim-pack-lock.json;
 }
