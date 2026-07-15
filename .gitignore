@@ -1,6 +1,3 @@
-# Machine-generated hardware identifiers
-/hosts/*/hardware-configuration.nix
-
 # Local-only post drafts
 /REDDIT.md
 
