@@ -25,6 +25,18 @@ mini_completion.setup({
     lsp_completion = { source_func = "omnifunc", auto_setup = false },
 })
 require("mini.surround").setup({})
+require("mini.move").setup({
+    mappings = {
+        left = "",
+        right = "",
+        down = "J",
+        up = "K",
+        line_left = "",
+        line_right = "",
+        line_down = "",
+        line_up = "",
+    },
+})
 require("mini.pick").setup({})
 vim.ui.select = MiniPick.ui_select
 require("mini.files").setup({})
@@ -457,30 +469,6 @@ vim.keymap.set("i", "jk", "<Esc>")
 vim.keymap.set("i", "kj", "<Esc>")
 vim.keymap.set("x", "<", "<gv", { desc = "Unindent selection" })
 vim.keymap.set("x", ">", ">gv", { desc = "Indent selection" })
-
-local function move_selection(offset)
-    local first = math.min(vim.fn.line("v"), vim.fn.line("."))
-    local last = math.max(vim.fn.line("v"), vim.fn.line("."))
-
-    if (offset < 0 and first == 1) or (offset > 0 and last == vim.fn.line("$")) then
-        return
-    end
-
-    local destination = offset < 0 and first - 2 or last + 1
-    vim.cmd(("%d,%dmove %d"):format(first, last, destination))
-
-    vim.cmd.normal({ vim.keycode("<Esc>"), bang = true })
-    vim.api.nvim_win_set_cursor(0, { first + offset, 0 })
-    vim.cmd("normal! V")
-    vim.api.nvim_win_set_cursor(0, { last + offset, 0 })
-end
-
-vim.keymap.set("x", "J", function()
-    move_selection(1)
-end, { desc = "Move selection down" })
-vim.keymap.set("x", "K", function()
-    move_selection(-1)
-end, { desc = "Move selection up" })
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down centered" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up centered" })
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result centered" })
