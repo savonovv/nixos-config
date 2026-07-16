@@ -52,7 +52,7 @@ require("mini.git").setup({})
 require("mini.indentscope").setup({
     draw = { animation = require("mini.indentscope").gen_animation.none() },
 })
-require("mini.sessions").setup({})
+require("mini.sessions").setup({ file = ".session.vim" })
 
 local which_key = require("which-key")
 which_key.setup({
@@ -376,7 +376,7 @@ vim.keymap.set("n", "<leader>sw", function()
     MiniSessions.write()
 end, { desc = "Write active session" })
 vim.keymap.set("n", "<leader>sl", function()
-    MiniSessions.write("Session.vim")
+    MiniSessions.write(".session.vim")
 end, { desc = "Create local session" })
 vim.keymap.set("n", "<leader>sd", function()
     MiniSessions.select("delete")

@@ -19,6 +19,8 @@
 *.secret
 
 # Editor and OS files
+Session.vim
+.session.vim
 *.swp
 *.swo
 *~
