@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
@@ -6,6 +6,8 @@
     claude-code
     chromium
     eza
+    gcc
+    gdb
     gh
     opencode
     pavucontrol
@@ -14,5 +16,7 @@
     telegram-desktop
     unzip
     wl-clipboard
+    inputs.zig-overlay.packages.${pkgs.stdenv.hostPlatform.system}.master
+    inputs.zls.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }

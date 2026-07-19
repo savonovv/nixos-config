@@ -4,7 +4,7 @@
   programs.tmux = {
     enable = true;
 
-    prefix = "C-a";
+    prefix = "C-Space";
     terminal = "tmux-256color";
     mouse = true;
     keyMode = "vi";

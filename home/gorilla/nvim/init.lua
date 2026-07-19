@@ -27,14 +27,14 @@ mini_completion.setup({
 require("mini.surround").setup({})
 require("mini.move").setup({
     mappings = {
-        left = "",
-        right = "",
-        down = "J",
-        up = "K",
-        line_left = "",
-        line_right = "",
-        line_down = "",
-        line_up = "",
+        left = "<A-h>",
+        right = "<A-l>",
+        down = "<A-j>",
+        up = "<A-k>",
+        line_left = "<A-h>",
+        line_right = "<A-l>",
+        line_down = "<A-j>",
+        line_up = "<A-k>",
     },
 })
 require("mini.pick").setup({})
@@ -107,6 +107,7 @@ local treesitter_languages = {
     "nix",
     "python",
     "rust",
+    "zig",
 }
 
 treesitter.setup({})
@@ -295,6 +296,11 @@ local servers = {
         filetypes = { "rust" },
         root_markers = { "Cargo.toml", ".git" },
     },
+    zls = {
+        cmd = { "zls" },
+        filetypes = { "zig" },
+        root_markers = { "build.zig", "build.zig.zon", ".git" },
+    },
 }
 
 for name, config in pairs(servers) do
@@ -436,6 +442,7 @@ dap.configurations.c = {
     },
 }
 dap.configurations.cpp = dap.configurations.c
+dap.configurations.zig = dap.configurations.c
 
 vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "Debug: Toggle breakpoint" })
 vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "Debug: Start/continue" })
@@ -458,7 +465,6 @@ end, { desc = "Toggle git diff overlay" })
 
 -- General keymaps ------------------------------------------------------------
 
-vim.keymap.set("x", "p", [['_dP]], { desc = "Paste without replacing the register" })
 vim.keymap.set({ "n", "x" }, "<leader>d", "d", { desc = "Delete without yanking" })
 vim.keymap.set({ "n", "x" }, "c", '"_c', { desc = "Change without yanking" })
 vim.keymap.set({ "n", "x" }, "C", '"_C', { desc = "Change line without yanking" })
@@ -477,3 +483,6 @@ vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result centered" })
 vim.keymap.set("x", "<leader>r", "\"hy:%s/<C-r>h//g<left><left>", {
     desc = "Replace word under selection",
 })
+
+vim.keymap.set("i", "<C-s>", "<cmd>w<CR><ESC>")
+vim.keymap.set("x", "<C-s>", "<cmd>w<CR>")
