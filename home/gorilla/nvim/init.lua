@@ -340,12 +340,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end,
 })
 
-vim.keymap.set("i", "<Tab>", function()
-    return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
-end, { expr = true, desc = "Next completion" })
-vim.keymap.set("i", "<S-Tab>", function()
-    return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
-end, { expr = true, desc = "Previous completion" })
+local function completion_or_snippet(direction)
+    if vim.fn.pumvisible() == 1 then
+        return direction == 1 and "<C-n>" or "<C-p>"
+    end
+    if vim.snippet.active({ direction = direction }) then
+        return ("<Cmd>lua vim.snippet.jump(%d)<CR>"):format(direction)
+    end
+    return direction == 1 and "<Tab>" or "<S-Tab>"
+end
+
+vim.keymap.set({ "i", "s" }, "<Tab>", function()
+    return completion_or_snippet(1)
+end, { expr = true, silent = true, desc = "Next completion or snippet placeholder" })
+vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+    return completion_or_snippet(-1)
+end, { expr = true, silent = true, desc = "Previous completion or snippet placeholder" })
 
 -- Picker and files -----------------------------------------------------------
 
@@ -419,6 +429,22 @@ vim.keymap.set("n", "<leader>bo", function()
     end
 end, { desc = "Delete other buffers" })
 
+vim.keymap.set("n", "<leader>bx", function()
+    local buffers = {}
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.bo[buf].buflisted then
+            if vim.bo[buf].modified then
+                vim.notify("Cannot delete all buffers: unsaved changes", vim.log.levels.WARN)
+                return
+            end
+            table.insert(buffers, buf)
+        end
+    end
+    for _, buf in ipairs(buffers) do
+        require("mini.bufremove").delete(buf, false)
+    end
+end, { desc = "Delete all buffers" })
+
 -- Debugger -------------------------------------------------------------------
 
 local dap = require("dap")
@@ -465,6 +491,7 @@ end, { desc = "Toggle git diff overlay" })
 
 -- General keymaps ------------------------------------------------------------
 
+vim.keymap.set("x", "p", [['_dP]], { desc = "Paste without replacing the register" })
 vim.keymap.set({ "n", "x" }, "<leader>d", "d", { desc = "Delete without yanking" })
 vim.keymap.set({ "n", "x" }, "c", '"_c', { desc = "Change without yanking" })
 vim.keymap.set({ "n", "x" }, "C", '"_C', { desc = "Change line without yanking" })
@@ -485,4 +512,4 @@ vim.keymap.set("x", "<leader>r", "\"hy:%s/<C-r>h//g<left><left>", {
 })
 
 vim.keymap.set("i", "<C-s>", "<cmd>w<CR><ESC>")
-vim.keymap.set("x", "<C-s>", "<cmd>w<CR>")
+vim.keymap.set({ "n", "x" }, "<C-s>", "<cmd>w<CR>")

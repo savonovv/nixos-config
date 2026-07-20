@@ -6,6 +6,8 @@
     claude-code
     chromium
     eza
+    exercism
+    freecad
     gcc
     gdb
     gh

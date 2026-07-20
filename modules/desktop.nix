@@ -26,6 +26,9 @@ in
     };
   };
 
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
+
   services.logind.settings.Login = {
     HandlePowerKey = "ignore";
     HandlePowerKeyLongPress = "ignore";
