@@ -52,7 +52,10 @@ require("mini.git").setup({})
 require("mini.indentscope").setup({
     draw = { animation = require("mini.indentscope").gen_animation.none() },
 })
-require("mini.sessions").setup({ file = ".session.vim" })
+require("mini.sessions").setup({
+    autoread = true,
+    file = ".session.vim",
+})
 
 local which_key = require("which-key")
 which_key.setup({
@@ -356,6 +359,12 @@ end, { expr = true, silent = true, desc = "Next completion or snippet placeholde
 vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
     return completion_or_snippet(-1)
 end, { expr = true, silent = true, desc = "Previous completion or snippet placeholder" })
+vim.keymap.set("i", "<CR>", function()
+    if vim.fn.pumvisible() == 0 then
+        return "<CR>"
+    end
+    return vim.fn.complete_info().selected == -1 and "<C-n><C-y>" or "<C-y>"
+end, { expr = true, silent = true, desc = "Accept completion" })
 
 -- Picker and files -----------------------------------------------------------
 
