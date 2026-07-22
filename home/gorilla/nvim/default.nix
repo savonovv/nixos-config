@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   programs.neovim = {
@@ -15,7 +15,7 @@
       rust-analyzer
       gopls
       pyright
-      inputs.zls.packages.${pkgs.stdenv.hostPlatform.system}.default
+      zls
 
       clang-tools
       gdb
