@@ -6,7 +6,7 @@
 
     settings = {
       font-family = "JetBrainsMono Nerd Font";
-      font-size = 11;
+      font-size = 10;
 
       window-padding-x = 8;
       window-padding-y = 0;

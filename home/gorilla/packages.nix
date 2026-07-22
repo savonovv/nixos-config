@@ -11,6 +11,7 @@
     gcc
     gdb
     gh
+    lldb
     opencode
     pavucontrol
     playerctl

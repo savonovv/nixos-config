@@ -24,6 +24,7 @@ local mini_completion = require("mini.completion")
 mini_completion.setup({
     lsp_completion = { source_func = "omnifunc", auto_setup = false },
 })
+require("mini.pairs").setup({})
 require("mini.surround").setup({})
 require("mini.move").setup({
     mappings = {
@@ -259,6 +260,20 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+vim.api.nvim_create_autocmd("BufWritePre", {
+    group = general_group,
+    pattern = "*.zig",
+    callback = function(args)
+        vim.lsp.buf.format({
+            async = false,
+            bufnr = args.buf,
+            filter = function(client)
+                return client.name == "zls"
+            end,
+        })
+    end,
+})
+
 -- Language servers -----------------------------------------------------------
 
 local servers = {
@@ -361,7 +376,7 @@ vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
 end, { expr = true, silent = true, desc = "Previous completion or snippet placeholder" })
 vim.keymap.set("i", "<CR>", function()
     if vim.fn.pumvisible() == 0 then
-        return "<CR>"
+        return MiniPairs.cr()
     end
     return vim.fn.complete_info().selected == -1 and "<C-n><C-y>" or "<C-y>"
 end, { expr = true, silent = true, desc = "Accept completion" })
