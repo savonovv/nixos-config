@@ -93,9 +93,9 @@
 
       setw -g window-status-separator ""
 
-      setw -g window-status-format "#[fg=#727169,bg=#1f1f28] #I:#W "
+      setw -g window-status-format "#{?@opencode_attention,#[fg=#16161d]#[bg=#e82424]#[bold] ! #I:#W ! ,#[fg=#727169]#[bg=#1f1f28] #I:#W }"
 
-      setw -g window-status-current-format "#[fg=#1f1f28,bg=#7e9cd8,bold] #I:#W #[fg=#7e9cd8,bg=#1f1f28]"
+      setw -g window-status-current-format "#{?@opencode_attention,#[fg=#16161d]#[bg=#e82424]#[bold] ! #I:#W ! #[fg=#e82424]#[bg=#1f1f28],#[fg=#1f1f28]#[bg=#7e9cd8]#[bold] #I:#W #[fg=#7e9cd8]#[bg=#1f1f28]}"
 
       setw -g window-status-activity-style "fg=#ffa066,bg=#1f1f28,bold"
 

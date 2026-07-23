@@ -28,8 +28,6 @@
         dot = nextsong
         slash = playpause
 
-        ; = :
-
         [nav]
         h = left
         j = down

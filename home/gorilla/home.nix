@@ -9,6 +9,7 @@
     ./firefox.nix
     ./fish.nix
     ./ghostty.nix
+    ./opencode.nix
     ./tmux.nix
     ./yazi.nix
     ./hypr
