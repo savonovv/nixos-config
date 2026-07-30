@@ -44,6 +44,7 @@
 
       confirm-close-surface = false;
       copy-on-select = "clipboard";
+      mouse-scroll-multiplier = "precision:0.7,discrete:3";
 
       gtk-single-instance = true;
       gtk-titlebar = false;

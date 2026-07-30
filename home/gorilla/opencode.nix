@@ -9,7 +9,7 @@
     import type { Plugin } from "@opencode-ai/plugin"
 
     export const ActionNotification: Plugin = async ({ $ }) => {
-      const pending = new Set<string>()
+      const pending = new Map<string, string>()
 
       const setTmuxAttention = async (enabled: boolean) => {
         const pane = process.env.TMUX_PANE
@@ -20,16 +20,25 @@
         } catch {}
       }
 
+      const clearSession = async (sessionID: string) => {
+        for (const [requestID, requestSessionID] of pending) {
+          if (requestSessionID === sessionID) pending.delete(requestID)
+        }
+        await setTmuxAttention(pending.size > 0)
+      }
+
       const notify = async () => {
         try {
           await $`${pkgs.systemd}/bin/busctl --user call org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications Notify susssasa{sv}i opencode 0 dialog-information "Action required" "OpenCode is waiting for your input" 0 0 5000`.quiet()
         } catch {}
       }
 
+      await setTmuxAttention(false)
+
       return {
         event: async ({ event }) => {
           if (event.type === "permission.asked" || event.type === "question.asked") {
-            pending.add(event.properties.id)
+            pending.set(event.properties.id, event.properties.sessionID)
             await Promise.all([setTmuxAttention(true), notify()])
             return
           }
@@ -41,6 +50,16 @@
           ) {
             pending.delete(event.properties.requestID)
             await setTmuxAttention(pending.size > 0)
+            return
+          }
+
+          if (event.type === "session.idle") {
+            await clearSession(event.properties.sessionID)
+            return
+          }
+
+          if (event.type === "session.error" && event.properties.sessionID) {
+            await clearSession(event.properties.sessionID)
           }
         },
       }

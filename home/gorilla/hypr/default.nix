@@ -5,7 +5,7 @@ let
 
   hyprKineticScroll = pkgs.stdenv.mkDerivation {
     pname = "hypr-kinetic-scroll";
-    version = "unstable-2026-07-05";
+    version = "unstable-2026-07-28";
     src = inputs.hypr-kinetic-scroll;
 
     nativeBuildInputs = [ pkgs.pkg-config ];

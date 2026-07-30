@@ -229,7 +229,7 @@ vim.opt.isfname:append("@-@")
 -- Native completion shows LSP details in a documentation popup. Command-line
 -- completion uses the same popup-menu style and fuzzy matching.
 vim.opt.autocomplete = false
-vim.opt.completeopt = { "menu", "menuone", "noselect", "popup" }
+vim.opt.completeopt = { "menu", "menuone", "noselect", "popup", "fuzzy" }
 vim.opt.wildmode = { "noselect:lastused", "full" }
 vim.opt.wildoptions = { "pum", "fuzzy" }
 
@@ -249,6 +249,14 @@ vim.api.nvim_create_autocmd("FileType", {
     group = general_group,
     callback = function()
         vim.opt_local.formatoptions:remove({ "c", "r", "o" })
+    end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+    group = general_group,
+    pattern = "markdown",
+    callback = function()
+        vim.opt_local.wrap = true
     end,
 })
 
@@ -530,6 +538,7 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Scroll down centered" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Scroll up centered" })
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result centered" })
 vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result centered" })
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 
 vim.keymap.set("x", "<leader>r", "\"hy:%s/<C-r>h//g<left><left>", {
     desc = "Replace word under selection",

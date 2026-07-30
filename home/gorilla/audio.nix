@@ -13,6 +13,72 @@ let
   headphoneDevice = "${devicePrefix}.HiFi__Headphones__sink";
   speakerProfile = "HiFi: Speaker: sink";
   headphoneProfile = "HiFi: Headphones: sink";
+  headphoneBands = [
+    {
+      type = "Lo-shelf";
+      frequency = 28.0;
+      gain = 4.13;
+      q = 0.917;
+    }
+    {
+      type = "Bell";
+      frequency = 144.0;
+      gain = 0.4;
+      q = 4.36;
+    }
+    {
+      type = "Bell";
+      frequency = 223.0;
+      gain = -3.43;
+      q = 0.412;
+    }
+    {
+      type = "Bell";
+      frequency = 791.0;
+      gain = 2.4;
+      q = 1.277;
+    }
+    {
+      type = "Bell";
+      frequency = 2335.0;
+      gain = -0.9;
+      q = 1.414;
+    }
+    {
+      type = "Bell";
+      frequency = 2451.0;
+      gain = 0.5;
+      q = 2.998;
+    }
+    {
+      type = "Bell";
+      frequency = 3596.0;
+      gain = -3.0;
+      q = 2.133;
+    }
+    {
+      type = "Bell";
+      frequency = 4868.0;
+      gain = 1.6;
+      q = 1.826;
+    }
+  ];
+  equalizerChannel = builtins.listToAttrs (builtins.genList (
+    index:
+    let
+      band = builtins.elemAt headphoneBands index;
+    in
+    {
+      name = "band${toString index}";
+      value = band // {
+        mode = "APO (DR)";
+        slope = "x1";
+        solo = false;
+        mute = false;
+        width = 4.0;
+      };
+    }
+  ) (builtins.length headphoneBands));
 in
 {
   services.easyeffects = {
@@ -53,6 +119,26 @@ in
         blocklist = [ ];
         plugins_order = [ ];
       };
+
+      "AUX Headphones".output = {
+        blocklist = [ ];
+        plugins_order = [ "equalizer#0" ];
+
+        "equalizer#0" = {
+          bypass = false;
+          input-gain = -5.0;
+          output-gain = 0.0;
+          mode = "IIR";
+          decramp = "Off";
+          split-channels = false;
+          balance = 0.0;
+          pitch-left = 0.0;
+          pitch-right = 0.0;
+          num-bands = builtins.length headphoneBands;
+          left = equalizerChannel;
+          right = equalizerChannel;
+        };
+      };
     };
   };
 
@@ -72,7 +158,7 @@ in
         device = headphoneDevice;
         device-description = "Arrow Lake cAVS Headphones";
         device-profile = headphoneProfile;
-        preset-name = "Bypass";
+        preset-name = "AUX Headphones";
       };
   };
 }

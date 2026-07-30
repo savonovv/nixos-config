@@ -39,6 +39,7 @@
         slash = playpause
 
         [shift]
+        backspace = delete
         grave = ~
 
         [alt]

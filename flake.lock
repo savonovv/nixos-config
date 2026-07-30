@@ -46,11 +46,11 @@
     "hypr-kinetic-scroll": {
       "flake": false,
       "locked": {
-        "lastModified": 1783259504,
-        "narHash": "sha256-Vt8l9PMAgcmbBynqLa91N2nW0Caij52YUYg3mWXYwSE=",
+        "lastModified": 1785254141,
+        "narHash": "sha256-2RI9RSoXhri9tr9DAsB/Zen96DzKsj/wLRbQQKEZ1Yc=",
         "owner": "savonovv",
         "repo": "hypr-kinetic-scroll",
-        "rev": "378e29c8ec9650965fe2713d53d1fff3ce137003",
+        "rev": "657a8a7cb1cc0a24a06e2dc0947df3e8f4e729ca",
         "type": "github"
       },
       "original": {
