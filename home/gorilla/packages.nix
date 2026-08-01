@@ -1,5 +1,17 @@
 { pkgs, ... }:
 
+let
+  lmms = pkgs.symlinkJoin {
+    name = "lmms-full-scaled";
+    paths = [ pkgs.lmms-full ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/lmms" \
+        --set QT_QPA_PLATFORM xcb \
+        --set QT_SCALE_FACTOR 1.5
+    '';
+  };
+in
 {
   home.packages = with pkgs; [
     bat
@@ -12,6 +24,8 @@
     gdb
     gh
     lldb
+    lmms
+    nodejs
     opencode
     pavucontrol
     playerctl

@@ -34,6 +34,11 @@
       bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
       bind -T copy-mode-vi Escape send-keys -X cancel
 
+      # Keep Ctrl+d for application navigation without letting Fish treat it as EOF.
+      bind -n C-d if-shell -F '#{||:#{==:#{pane_current_command},fish},#{==:#{pane_current_command},opencode}}' \
+        'display-message "Use exit or Prefix+x to close this pane"' \
+        'send-keys C-d'
+
       # Start indexes from 1
       set -g base-index 1
       setw -g pane-base-index 1

@@ -26,6 +26,9 @@ mini_completion.setup({
 })
 require("mini.pairs").setup({})
 require("mini.surround").setup({})
+require("mini.splitjoin").setup({
+    mappings = { toggle = "<A-s>" },
+})
 require("mini.move").setup({
     mappings = {
         left = "<A-h>",
