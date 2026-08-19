@@ -73,6 +73,7 @@ in
         border-color = "#e82424f0";
         default-timeout = 0;
       };
+      "mode=do-not-disturb".invisible = true;
     };
   };
 

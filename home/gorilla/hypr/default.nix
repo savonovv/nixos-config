@@ -1,4 +1,9 @@
-{ config, inputs, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 
 let
   wallpaper = ../../../assets/wallpaper.png;
@@ -103,6 +108,31 @@ let
       notify-send --urgency=low "Screenshot saved" "$file"
     '';
   };
+
+  toggleZapret2 = pkgs.writeShellApplication {
+    name = "toggle-zapret2";
+    runtimeInputs = with pkgs; [
+      libnotify
+      systemd
+    ];
+    text = ''
+      if systemctl is-active --quiet zapret2.service; then
+        if systemctl stop zapret2.service; then
+          notify-send --urgency=low --icon=network-offline-symbolic "Zapret2 disabled"
+        else
+          notify-send --urgency=critical "Zapret2 toggle failed" "Could not stop zapret2.service"
+          exit 1
+        fi
+      else
+        if systemctl start zapret2.service; then
+          notify-send --urgency=low --icon=network-vpn-symbolic "Zapret2 enabled"
+        else
+          notify-send --urgency=critical "Zapret2 toggle failed" "Check journalctl -u zapret2.service"
+          exit 1
+        fi
+      fi
+    '';
+  };
 in
 {
   wayland.windowManager.hyprland = {
@@ -114,6 +144,7 @@ in
     osdVolume
     osdBrightness
     screenshotRegion
+    toggleZapret2
   ];
 
   services.swayosd = {
@@ -175,14 +206,16 @@ in
         retry_delay = 250;
       };
 
-      background = [{
-        monitor = "";
-        path = "${wallpaper}";
-        blur_passes = 2;
-        blur_size = 6;
-        brightness = 0.85;
-        contrast = 1.0;
-      }];
+      background = [
+        {
+          monitor = "";
+          path = "${wallpaper}";
+          blur_passes = 2;
+          blur_size = 6;
+          brightness = 0.85;
+          contrast = 1.0;
+        }
+      ];
 
     };
   };

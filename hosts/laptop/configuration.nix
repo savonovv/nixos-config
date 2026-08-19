@@ -11,6 +11,7 @@
       ../../modules/desktop.nix
       ../../modules/keyd.nix
       ../../modules/audio.nix
+      ../../modules/zapret2.nix
       # ../../modules/fonts.nix
       # ../../modules/networking.nix
     ];

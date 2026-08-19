@@ -16,9 +16,10 @@
       gopls
       pyright
       zls
+      odin
+      ols
 
       clang-tools
-      gdb
       cmake
       gnumake
       ninja
@@ -30,6 +31,6 @@
       git
     ];
     initLua = builtins.readFile ./init.lua;
-    };
+  };
 
 }

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 let
   lmms = pkgs.symlinkJoin {
@@ -26,7 +26,9 @@ in
     lldb
     lmms
     nodejs
-    opencode
+    odin
+    ols
+    inputs.opencode.packages.${pkgs.system}.opencode
     pavucontrol
     playerctl
     rose-pine-hyprcursor

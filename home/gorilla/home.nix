@@ -20,6 +20,7 @@
     username = "gorilla";
     homeDirectory = "/home/gorilla";
     stateVersion = "26.05";
+    sessionPath = [ "$HOME/.local/bin" ];
   };
 
   home.pointerCursor = {

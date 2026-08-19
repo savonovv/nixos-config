@@ -70,7 +70,7 @@
       # Status bar
       set -g status on
       set -g status-position bottom
-      set -g status-justify centre
+      set -g status-justify left
       set -g status-interval 5
 
       # Kanagawa:
@@ -89,12 +89,12 @@
       set -g status-style "bg=#1f1f28,fg=#dcd7ba"
 
       set -g status-left-length 60
-      set -g status-right-length 120
+      set -g status-right-length 160
 
       # Session segment turns orange while the prefix is active.
       set -g status-left "#{?client_prefix,#[fg=#16161d]#[bg=#ff5d62]#[bold] #S #[fg=#ff5d62]#[bg=#1f1f28],#[fg=#16161d]#[bg=#e6c384]#[bold] #S #[fg=#e6c384]#[bg=#1f1f28]}"
 
-      set -g status-right "#[fg=#7e9cd8]CPU #(awk '{print $1}' /proc/loadavg) #[fg=#727169]│ #[fg=#957fb8]MEM #(awk '/MemTotal/ { total=$2 } /MemAvailable/ { available=$2 } END { printf \"%.0f%%\", (total-available)*100/total }' /proc/meminfo) #[fg=#727169]│ #[fg=#7aa89f]#(nmcli -t -f TYPE,STATE device status | awk -F: '$2 == \"connected\" && $1 == \"wifi\" { print \"󰖩\"; found=1; exit } $2 == \"connected\" && $1 == \"ethernet\" { wired=1 } END { if (!found) print wired ? \"󰈀\" : \"󰖪\" }') #[fg=#727169]│ #[fg=#ffa066]BAT #(awk 'NR == 1 { pct=$1; next } { icon = $1 == \"Charging\" ? \"⇡\" : ($1 == \"Full\" ? \"•\" : \"⇣\"); print icon \" \" pct \"%\" }' /sys/class/power_supply/BAT0/capacity /sys/class/power_supply/BAT0/status) #[fg=#727169]│ #[fg=#7fb4ca]#(whoami)#[fg=#727169]@#[fg=#c0a36e]#H #[fg=#727169]│ #[fg=#98bb6c]%B %-d #[fg=#e6c384]%H:%M "
+      set -g status-right "#(makoctl mode 2>/dev/null | grep -qx do-not-disturb && printf '#[fg=#e82424]NOTIFY OFF' || printf '#[fg=#98bb6c]NOTIFY ON') #[fg=#727169]│ #[fg=#7e9cd8]CPU #(awk '{print $1}' /proc/loadavg) #[fg=#727169]│ #[fg=#957fb8]MEM #(awk '/MemTotal/ { total=$2 } /MemAvailable/ { available=$2 } END { printf \"%.0f%%\", (total-available)*100/total }' /proc/meminfo) #[fg=#727169]│ #[fg=#7aa89f]#(nmcli -t -f TYPE,STATE device status | awk -F: '$2 == \"connected\" && $1 == \"wifi\" { print \"󰖩\"; found=1; exit } $2 == \"connected\" && $1 == \"ethernet\" { wired=1 } END { if (!found) print wired ? \"󰈀\" : \"󰖪\" }') #[fg=#727169]│ #[fg=#ffa066]BAT #(awk 'NR == 1 { pct=$1; next } { icon = $1 == \"Charging\" ? \"⇡\" : ($1 == \"Full\" ? \"•\" : \"⇣\"); print icon \" \" pct \"%\" }' /sys/class/power_supply/BAT0/capacity /sys/class/power_supply/BAT0/status) #[fg=#727169]│ #[fg=#7fb4ca]#(whoami)#[fg=#727169]@#[fg=#c0a36e]#H #[fg=#727169]│ #[fg=#98bb6c]%A %B %-d #[fg=#e6c384]%H:%M "
 
       setw -g window-status-separator ""
 

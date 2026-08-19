@@ -75,12 +75,44 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1776683584,
+        "narHash": "sha256-NuTLMrr10Tng72hurYG8jYQ4XKK8wnpJmOGcPiis96g=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "9dd5558b06dbdacbf635a3dd36dce1b1a7ee3a89",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1786035288,
+        "narHash": "sha256-VHWZmpqk+Z+bx7+9P/DOd+5jWPO8GP3GVXkkjDJAFwU=",
+        "path": "/home/gorilla/projects/opencode",
+        "type": "path"
+      },
+      "original": {
+        "path": "/home/gorilla/projects/opencode",
+        "type": "path"
+      }
+    },
     "root": {
       "inputs": {
         "firefox-addons": "firefox-addons",
         "home-manager": "home-manager",
         "hypr-kinetic-scroll": "hypr-kinetic-scroll",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "opencode": "opencode"
       }
     }
   },

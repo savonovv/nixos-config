@@ -19,6 +19,7 @@
       flake = false;
     };
 
+    opencode.url = "path:/home/gorilla/projects/opencode";
   };
 
   outputs = inputs@{

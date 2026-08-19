@@ -7,9 +7,11 @@ vim.g.mapleader = " "
 vim.pack.add({
     "https://github.com/rebelot/kanagawa.nvim",
     "https://github.com/nvim-mini/mini.nvim",
+    "https://github.com/nvim-lua/plenary.nvim",
     "https://github.com/nvim-treesitter/nvim-treesitter",
+    "https://github.com/nvim-telescope/telescope.nvim",
     "https://github.com/folke/which-key.nvim",
-    "https://github.com/mfussenegger/nvim-dap",
+    "https://github.com/MeanderingProgrammer/render-markdown.nvim",
 })
 
 local mini_icons = require("mini.icons")
@@ -20,6 +22,8 @@ require("mini.notify").setup({
     lsp_progress = { enable = false },
 })
 require("mini.cmdline").setup({ autocomplete = { delay = 100 } })
+local mini_fuzzy = require("mini.fuzzy")
+mini_fuzzy.setup({})
 local mini_completion = require("mini.completion")
 mini_completion.setup({
     lsp_completion = { source_func = "omnifunc", auto_setup = false },
@@ -41,8 +45,6 @@ require("mini.move").setup({
         line_up = "<A-k>",
     },
 })
-require("mini.pick").setup({})
-vim.ui.select = MiniPick.ui_select
 require("mini.files").setup({})
 require("mini.tabline").setup({ show_icons = true })
 require("mini.bufremove").setup({})
@@ -59,6 +61,14 @@ require("mini.indentscope").setup({
 require("mini.sessions").setup({
     autoread = true,
     file = ".session.vim",
+})
+require("render-markdown").setup({})
+require("telescope").setup({
+    defaults = {
+        file_sorter = mini_fuzzy.get_telescope_sorter,
+        generic_sorter = mini_fuzzy.get_telescope_sorter,
+        mappings = { i = { ["<Esc>"] = require("telescope.actions").close } },
+    },
 })
 
 local which_key = require("which-key")
@@ -88,9 +98,9 @@ which_key.add({
     { "<leader>?", desc = "Buffer keymaps" },
     { "<leader>b", group = "Buffers" },
     { "<leader>c", group = "Code" },
-    { "<leader>d", group = "Debug" },
     { "<leader>f", group = "Find" },
     { "<leader>g", group = "Git" },
+    { "<leader>m", group = "Markdown" },
     { "<leader>n", group = "Notifications" },
     { "<leader>s", group = "Sessions" },
     { "<leader>w", group = "Windows" },
@@ -99,6 +109,14 @@ which_key.add({
 vim.keymap.set("n", "<leader>?", function()
     which_key.show({ global = false })
 end, { desc = "Buffer keymaps" })
+
+vim.keymap.set("n", "<leader>mp", function()
+    require("render-markdown").preview()
+end, { desc = "Markdown preview" })
+
+vim.keymap.set("n", "<leader>mt", function()
+    require("render-markdown").toggle()
+end, { desc = "Toggle Markdown rendering" })
 
 local treesitter = require("nvim-treesitter")
 local treesitter_languages = {
@@ -112,6 +130,7 @@ local treesitter_languages = {
     "markdown",
     "markdown_inline",
     "nix",
+    "odin",
     "python",
     "rust",
     "zig",
@@ -189,6 +208,8 @@ function _G.statusline()
 
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local lsp = #clients > 0 and ("%#StatuslineLsp# " .. clients[1].name .. " ") or ""
+    local recording_register = vim.fn.reg_recording()
+    local recording = recording_register ~= "" and ("%#StatuslineWarn# REC @" .. recording_register .. " ") or ""
 
     return table.concat({
         "%#StatuslineMode# ",
@@ -198,6 +219,7 @@ function _G.statusline()
         diff,
         "%#StatuslineFile#  %f %m%r",
         "%=",
+        recording,
         diagnostics,
         lsp,
         "%#StatuslineMeta# %y  %l:%c  %p%% ",
@@ -252,22 +274,24 @@ vim.api.nvim_create_autocmd("FileType", {
     group = general_group,
     callback = function()
         vim.opt_local.formatoptions:remove({ "c", "r", "o" })
+        vim.opt_local.wrap = vim.bo.filetype == "markdown" or vim.bo.filetype == "text"
     end,
 })
 
 vim.api.nvim_create_autocmd("FileType", {
     group = general_group,
-    pattern = "markdown",
-    callback = function()
-        vim.opt_local.wrap = true
-    end,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-    group = general_group,
-    pattern = { "help", "minifiles", "minipick", "notify" },
+    pattern = { "help", "minifiles", "notify", "TelescopePrompt" },
     callback = function()
         vim.b.miniindentscope_disable = true
+    end,
+})
+
+vim.api.nvim_create_autocmd("User", {
+    group = general_group,
+    pattern = "MiniFilesBufferCreate",
+    callback = function(args)
+        vim.keymap.set("n", "<Esc>", MiniFiles.close, { buffer = args.data.buf_id, desc = "Close explorer" })
+        vim.keymap.set("n", "<CR>", MiniFiles.go_in, { buffer = args.data.buf_id, desc = "Open entry" })
     end,
 })
 
@@ -280,6 +304,20 @@ vim.api.nvim_create_autocmd("BufWritePre", {
             bufnr = args.buf,
             filter = function(client)
                 return client.name == "zls"
+            end,
+        })
+    end,
+})
+
+vim.api.nvim_create_autocmd("BufWritePre", {
+    group = general_group,
+    pattern = "*.odin",
+    callback = function(args)
+        vim.lsp.buf.format({
+            async = false,
+            bufnr = args.buf,
+            filter = function(client)
+                return client.name == "ols"
             end,
         })
     end,
@@ -314,6 +352,17 @@ local servers = {
         filetypes = { "nix" },
         root_markers = { "flake.nix", ".git" },
         settings = { nixd = { formatting = { command = { "nixfmt" } } } },
+    },
+    ols = {
+        cmd = { "ols" },
+        filetypes = { "odin" },
+        root_markers = { "ols.json", "flake.nix", ".git" },
+        init_options = {
+            enable_format = true,
+            enable_hover = true,
+            enable_document_symbols = true,
+            enable_snippets = true,
+        },
     },
     pyright = {
         cmd = { "pyright-langserver", "--stdio" },
@@ -394,13 +443,43 @@ end, { expr = true, silent = true, desc = "Accept completion" })
 
 -- Picker and files -----------------------------------------------------------
 
-local pick = require("mini.pick")
-vim.keymap.set("n", "<leader><leader>", pick.builtin.files, { desc = "Find files" })
-vim.keymap.set("n", "<leader>ff", pick.builtin.files, { desc = "Find files" })
-vim.keymap.set("n", "<leader>fg", pick.builtin.grep_live, { desc = "Find text" })
-vim.keymap.set("n", "<leader>fb", pick.builtin.buffers, { desc = "Find buffers" })
-vim.keymap.set("n", "<leader>fh", pick.builtin.help, { desc = "Find help" })
-vim.keymap.set("n", "<leader>fr", pick.builtin.resume, { desc = "Resume picker" })
+local telescope_builtin = require("telescope.builtin")
+local ignored_picker_paths = {
+    "!.git/**",
+    "!**/node_modules/**",
+    "!**/dist/**",
+    "!**/build/**",
+    "!**/coverage/**",
+    "!**/.cache/**",
+}
+
+local function picker_globs()
+    local args = {}
+    for _, path in ipairs(ignored_picker_paths) do
+        vim.list_extend(args, { "--glob", path })
+    end
+    return args
+end
+
+local function find_files()
+    local command = { "rg", "--files", "--hidden", "--color=never" }
+    vim.list_extend(command, picker_globs())
+    telescope_builtin.find_files({ find_command = command })
+end
+
+local function grep_files()
+    local args = { "--hidden" }
+    vim.list_extend(args, picker_globs())
+    telescope_builtin.live_grep({ additional_args = args })
+end
+
+vim.keymap.set("n", "<leader><leader>", find_files, { desc = "Find files" })
+vim.keymap.set("n", "<leader>ff", find_files, { desc = "Find files" })
+vim.keymap.set("n", "<leader>fg", grep_files, { desc = "Find text" })
+vim.keymap.set("n", "<leader>fb", telescope_builtin.buffers, { desc = "Find buffers" })
+vim.keymap.set("n", "<leader>fd", telescope_builtin.diagnostics, { desc = "Find diagnostics" })
+vim.keymap.set("n", "<leader>fh", telescope_builtin.help_tags, { desc = "Find help" })
+vim.keymap.set("n", "<leader>fr", telescope_builtin.resume, { desc = "Resume picker" })
 vim.keymap.set("n", "<leader>e", function()
     if not MiniFiles.close() then
         MiniFiles.open(vim.uv.cwd(), true)
@@ -479,39 +558,6 @@ vim.keymap.set("n", "<leader>bx", function()
         require("mini.bufremove").delete(buf, false)
     end
 end, { desc = "Delete all buffers" })
-
--- Debugger -------------------------------------------------------------------
-
-local dap = require("dap")
-
-dap.adapters.gdb = {
-    type = "executable",
-    command = "gdb",
-    args = { "-i", "dap" },
-}
-
-dap.configurations.c = {
-    {
-        name = "Launch executable",
-        type = "gdb",
-        request = "launch",
-        program = function()
-            return vim.fn.input("Executable: ", vim.fn.getcwd() .. "/", "file")
-        end,
-        cwd = "${workspaceFolder}",
-        stopAtBeginningOfMainSubprogram = false,
-    },
-}
-dap.configurations.cpp = dap.configurations.c
-dap.configurations.zig = dap.configurations.c
-
-vim.keymap.set("n", "<leader>db", dap.toggle_breakpoint, { desc = "Debug: Toggle breakpoint" })
-vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "Debug: Start/continue" })
-vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "Debug: Step into" })
-vim.keymap.set("n", "<leader>dn", dap.step_over, { desc = "Debug: Step over" })
-vim.keymap.set("n", "<leader>do", dap.step_out, { desc = "Debug: Step out" })
-vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { desc = "Debug: Toggle REPL" })
-vim.keymap.set("n", "<leader>dx", dap.terminate, { desc = "Debug: Stop" })
 
 -- Git ------------------------------------------------------------------------
 
