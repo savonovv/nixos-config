@@ -19,7 +19,7 @@
       flake = false;
     };
 
-    opencode.url = "path:/home/gorilla/projects/opencode";
+    opencode.url = "github:anomalyco/opencode/03bff6500abd09fc469d59e5bd4143d3eb053a94";
   };
 
   outputs = inputs@{
@@ -33,6 +33,9 @@
 
       specialArgs = {
         inherit inputs;
+        hostName = "laptop";
+        isLaptop = true;
+        username = "gorilla";
       };
 
       modules = [
@@ -46,9 +49,46 @@
           home-manager.backupFileExtension = "hm-backup";
           home-manager.extraSpecialArgs = {
             inherit inputs;
+            hostName = "laptop";
+            isLaptop = true;
+            username = "gorilla";
           };
 
           home-manager.users.gorilla = import ./home/gorilla/home.nix;
+        }
+      ];
+    };
+
+    nixosConfigurations.desktop = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+
+      specialArgs = {
+        inherit inputs;
+        hostName = "desktop";
+        isLaptop = false;
+        username = "gorilladesk";
+      };
+
+      modules = [
+        ./hosts/desktop/configuration.nix
+
+        home-manager.nixosModules.home-manager
+
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {
+            inherit inputs;
+            hostName = "desktop";
+            isLaptop = false;
+            username = "gorilladesk";
+          };
+
+          home-manager.users.gorilladesk = {
+            imports = [ ./home/gorilla/home.nix ];
+            programs.hyprlock.settings.auth.fingerprint.enabled = nixpkgs.lib.mkForce false;
+          };
         }
       ];
     };

@@ -96,14 +96,18 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1786035288,
-        "narHash": "sha256-VHWZmpqk+Z+bx7+9P/DOd+5jWPO8GP3GVXkkjDJAFwU=",
-        "path": "/home/gorilla/projects/opencode",
-        "type": "path"
+        "lastModified": 1786032453,
+        "narHash": "sha256-IWjd2q0bW8uQTsOFdv8weLT9eFAhX7SVqbyX/yYnP5Q=",
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "03bff6500abd09fc469d59e5bd4143d3eb053a94",
+        "type": "github"
       },
       "original": {
-        "path": "/home/gorilla/projects/opencode",
-        "type": "path"
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "03bff6500abd09fc469d59e5bd4143d3eb053a94",
+        "type": "github"
       }
     },
     "root": {

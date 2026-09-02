@@ -1,9 +1,8 @@
-{ pkgs, ... }:
+{ isLaptop, lib, pkgs, username, ... }:
 
 {
   imports = [
     ./packages.nix
-    ./audio.nix
     ./desktop.nix
     ./fastfetch.nix
     ./firefox.nix
@@ -14,11 +13,11 @@
     ./yazi.nix
     ./hypr
     ./nvim
-  ];
+  ] ++ lib.optionals isLaptop [ ./audio.nix ];
 
   home = {
-    username = "gorilla";
-    homeDirectory = "/home/gorilla";
+    inherit username;
+    homeDirectory = "/home/${username}";
     stateVersion = "26.05";
     sessionPath = [ "$HOME/.local/bin" ];
   };

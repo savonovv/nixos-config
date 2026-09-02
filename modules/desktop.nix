@@ -1,10 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 let
   sddmTheme = pkgs.runCommand "sddm-minimal-lock-theme" { } ''
     theme="$out/share/sddm/themes/minimal-lock"
     mkdir -p "$theme"
-    cp ${./sddm-theme/Main.qml} "$theme/Main.qml"
+    substitute ${./sddm-theme/Main.qml} "$theme/Main.qml" \
+      --replace-fail '@USERNAME@' '${username}'
     cp ${./sddm-theme/metadata.desktop} "$theme/metadata.desktop"
     cp ${../assets/wallpaper.png} "$theme/wallpaper.png"
   '';

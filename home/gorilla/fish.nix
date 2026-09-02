@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ hostName, pkgs, ... }:
 
 {
   programs.fish = {
@@ -28,8 +28,8 @@
       tk = "tmux kill-session -t";
       cc = "opencode -c";
       c = "opencode";
-      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#laptop";
-      update-system = "nix flake update --flake /etc/nixos && sudo nixos-rebuild switch --flake /etc/nixos#laptop";
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#${hostName}";
+      update-system = "nix flake update --flake /etc/nixos && sudo nixos-rebuild switch --flake /etc/nixos#${hostName}";
       rollback = "sudo nixos-rebuild switch --rollback";
     };
 

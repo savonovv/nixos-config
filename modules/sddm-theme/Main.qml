@@ -41,7 +41,7 @@ Rectangle {
 
         function submit() {
             if (text.length > 0)
-                sddm.login("gorilla", text, root.sessionIndex)
+                sddm.login("@USERNAME@", text, root.sessionIndex)
         }
     }
 

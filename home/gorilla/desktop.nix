@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, isLaptop, lib, pkgs, ... }:
 
 let
   batteryNotify = pkgs.writeShellApplication {
@@ -149,10 +149,8 @@ in
     };
   };
 
-  home.packages = [
-    batteryNotify
-    pkgs.polkit_gnome
-  ];
+  home.packages = [ pkgs.polkit_gnome ]
+    ++ lib.optionals isLaptop [ batteryNotify ];
 
   systemd.user.services.polkit-gnome = {
     Unit = {
@@ -168,7 +166,7 @@ in
     Install.WantedBy = [ config.wayland.systemd.target ];
   };
 
-  systemd.user.services.battery-notify = {
+  systemd.user.services.battery-notify = lib.mkIf isLaptop {
     Unit.Description = "Notify at low battery thresholds";
     Service = {
       Type = "oneshot";
@@ -176,7 +174,7 @@ in
     };
   };
 
-  systemd.user.timers.battery-notify = {
+  systemd.user.timers.battery-notify = lib.mkIf isLaptop {
     Unit.Description = "Check battery level periodically";
     Timer = {
       OnBootSec = "2m";

@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, username, ... }:
 
 let
   queueNumber = 200;
@@ -72,7 +72,7 @@ in
     polkit.addRule(function(action, subject) {
       if (action.id == "org.freedesktop.systemd1.manage-units" &&
           action.lookup("unit") == "zapret2.service" &&
-          subject.user == "gorilla") {
+          subject.user == "${username}") {
         return polkit.Result.YES;
       }
     });
