@@ -399,6 +399,17 @@ vim.diagnostic.config({
     virtual_text = { current_line = true },
 })
 
+vim.keymap.set("n", "gd", function()
+    local ok, source_buf = pcall(vim.api.nvim_win_get_var, 0, "textDocument/hover")
+    if ok and vim.api.nvim_buf_is_valid(source_buf) then
+        local source_win = vim.fn.bufwinid(source_buf)
+        if source_win ~= -1 then
+            vim.api.nvim_set_current_win(source_win)
+        end
+    end
+    vim.lsp.buf.definition()
+end, { desc = "LSP: Go to definition" })
+
 vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("lsp_attach", { clear = true }),
     callback = function(args)
@@ -572,6 +583,67 @@ end, { desc = "Toggle git diff overlay" })
 
 -- General keymaps ------------------------------------------------------------
 
+local function open_under_cursor()
+    local ok, targets = pcall(require("vim.ui")._get_urls)
+    if not ok then
+        targets = { vim.fn.expand("<cfile>") }
+    end
+
+    for _, target in ipairs(targets) do
+        local path = vim.fn.expand(target)
+        local candidates = { path }
+
+        if vim.fs.normalize(path) ~= vim.fs.abspath(path) then
+            local buffer_path = vim.api.nvim_buf_get_name(0)
+            local root = vim.fs.root(0, { "tsconfig.json", "jsconfig.json", "package.json", ".git" })
+            if buffer_path ~= "" then
+                candidates = {
+                    vim.fs.joinpath(vim.fs.dirname(buffer_path), path),
+                    vim.fs.joinpath(vim.uv.cwd(), path),
+                }
+            end
+            if root then
+                vim.list_extend(candidates, {
+                    vim.fs.joinpath(root, path),
+                    vim.fs.joinpath(root, "src", path),
+                })
+            end
+        end
+
+        local opened = false
+        for _, candidate in ipairs(candidates) do
+            local variants = { candidate }
+            for _, extension in ipairs({ ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json" }) do
+                table.insert(variants, candidate .. extension)
+                table.insert(variants, vim.fs.joinpath(candidate, "index" .. extension))
+            end
+
+            for _, variant in ipairs(variants) do
+                if vim.fn.filereadable(variant) == 1 then
+                    vim.cmd.edit({ args = { vim.fs.normalize(variant) } })
+                    opened = true
+                    break
+                end
+            end
+            if opened then
+                break
+            end
+        end
+
+        if not opened then
+            if target:match("^%a[%w+.-]*:") then
+                local _, err = vim.ui.open(target)
+                if err then
+                    vim.notify(err, vim.log.levels.ERROR)
+                end
+            else
+                vim.notify("File not found: " .. target, vim.log.levels.WARN)
+            end
+        end
+    end
+end
+
+vim.keymap.set("n", "gx", open_under_cursor, { desc = "Open file in buffer or URI externally" })
 vim.keymap.set("x", "p", [['_dP]], { desc = "Paste without replacing the register" })
 vim.keymap.set({ "n", "x" }, "<leader>d", "d", { desc = "Delete without yanking" })
 vim.keymap.set({ "n", "x" }, "c", '"_c', { desc = "Change without yanking" })
